@@ -17,10 +17,12 @@
 # Regular expression for the host names under which Kimai may be requested,
 # without the port. It has to match the host name of DEFAULT_URI. Write each
 # "$" twice and each "%" twice: systemd reads a single one as the start of a
-# variable or a specifier.
+# variable or a specifier. Write a dot as "[.]": podman ignores a line that
+# contains "\.".
 #Environment=TRUSTED_HOSTS=^localhost$$
 
 # Addresses of the reverse proxies in front of the container, separated by
 # commas. Kimai takes the address of the client and the protocol from the
-# X-Forwarded-* headers of requests that come from these addresses.
+# X-Forwarded-* headers of requests that come from these addresses. The
+# keyword REMOTE_ADDR stands for the address of every request.
 #Environment=TRUSTED_PROXIES=127.0.0.1

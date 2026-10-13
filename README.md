@@ -113,11 +113,14 @@ fails. For the address `https://kimai.example.com/` the lines are:
 
 ```ini
 Environment=DEFAULT_URI=https://kimai.example.com/
-Environment=TRUSTED_HOSTS=^kimai\.example\.com$$
+Environment=TRUSTED_HOSTS=^kimai[.]example[.]com$$
 ```
 
 systemd reads a single `$` as the start of a variable and a single `%` as the
-start of a specifier. Write each of them twice in the regular expression.
+start of a specifier. Write each of them twice in the regular expression. podman
+reads a backslash as the start of an escape sequence and ignores a line that
+contains `\.`, after which the default of `TRUSTED_HOSTS` stays in effect. Write
+a dot as `[.]`, and a backslash that the expression needs as `\\`.
 
 The default of `PublishPort` accepts connections from the local machine only.
 The container serves HTTP without TLS.
@@ -138,19 +141,28 @@ proxy_set_header X-Forwarded-Proto $scheme;
 
 Kimai reads these headers only in requests that come from an address in
 `TRUSTED_PROXIES`. Without that, it treats every request as HTTP and redirects
-the browser to an `http` address. The setting accepts addresses and ranges such
-as `10.0.0.0/8`, separated by commas, and no host names. The address is the one
-from which the requests arrive inside the container. A request through the port
-of `PublishPort` arrives from an address of the network `kimai`, not from
-`127.0.0.1`. The log of the `kimai` container shows the address in each request
-line, after the host name:
+the browser to an `http` address. The setting accepts addresses, ranges such as
+`10.0.0.0/8` and the keyword `REMOTE_ADDR`, separated by commas, and no host
+names. The address is the one from which the requests arrive inside the
+container. A request through the port of `PublishPort` arrives from an address
+of the network `kimai`, not from `127.0.0.1`. The log of the `kimai` container
+shows the address in each request line, after the host name:
 
 ```bash
 journalctl --user -u kimai -g ' "GET '
 ```
 
-That address changes when the container is started again. Use the range of the
-network, which this command prints:
+That address changes when the container is started again. Use the keyword
+`REMOTE_ADDR`, with which Kimai reads the headers of every request, whatever
+address it comes from:
+
+```ini
+Environment=TRUSTED_PROXIES=REMOTE_ADDR
+```
+
+To name the addresses instead, use the range of the network, which this command
+prints. podman can give the network another range when it creates the network
+again.
 
 ```bash
 podman network inspect kimai --format '{{range .Subnets}}{{.Subnet}}{{end}}'
