@@ -1,0 +1,5 @@
+[Unit]
+Description=Network of the Kimai containers
+
+[Network]
+NetworkName=kimai

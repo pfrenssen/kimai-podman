@@ -1,0 +1,10 @@
+#!/bin/sh
+# Kimai reads the database password only as a part of DATABASE_URL. This script
+# composes that address from the secret and runs the command it is given.
+# "serverVersion" names the series of the image in kimai-db.container.
+set -eu
+
+DATABASE_URL="mysql://kimai:$(cat /run/secrets/db_password)@db/kimai?charset=utf8mb4&serverVersion=12.3.0-MariaDB"
+export DATABASE_URL
+
+exec "$@"

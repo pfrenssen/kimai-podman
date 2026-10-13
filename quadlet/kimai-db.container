@@ -1,0 +1,30 @@
+[Unit]
+Description=MariaDB database of Kimai
+
+[Container]
+ContainerName=kimai-db
+# The series is repeated in "serverVersion" of kimai.container.
+Image=docker.io/library/mariadb:12.3
+Environment=MARIADB_DATABASE=kimai
+Environment=MARIADB_USER=kimai
+Environment=MARIADB_PASSWORD_FILE=/run/secrets/db_password
+Environment=MARIADB_ROOT_PASSWORD_FILE=/run/secrets/db_root_password
+Secret=kimai-db-password,target=db_password
+Secret=kimai-db-root-password,target=db_root_password
+Network=kimai.network
+# The Kimai container connects to the host name "db".
+NetworkAlias=db
+Volume=kimai-db.volume:/var/lib/mysql
+HealthCmd=healthcheck.sh --connect --innodb_initialized
+HealthInterval=10s
+HealthTimeout=5s
+HealthRetries=5
+HealthStartPeriod=30s
+# systemd counts the unit as started when the health check passes, so the
+# Kimai container is started after the database accepts connections.
+Notify=healthy
+
+[Service]
+Restart=on-failure
+# The first start downloads the image, which has to fit in this time.
+TimeoutStartSec=900

@@ -1,0 +1,26 @@
+# Settings of the Kimai container. Copy this file to
+# ~/.config/containers/systemd/kimai.container.d/settings.conf, remove the "#"
+# in front of the lines to change and set the values. The values below are the
+# defaults.
+
+[Container]
+# Address and port on the host on which Kimai listens. The empty line removes
+# the default; without it Kimai listens on both ports.
+#PublishPort=
+#PublishPort=127.0.0.1:8001:8001
+
+# Address under which browsers reach Kimai, with the port when it is not 80 or
+# 443. Kimai uses it in the links of its emails. Use "https" only when a
+# reverse proxy that ends the TLS connection is in front of the container.
+#Environment=DEFAULT_URI=http://localhost:8001/
+
+# Regular expression for the host names under which Kimai may be requested,
+# without the port. It has to match the host name of DEFAULT_URI. Write each
+# "$" twice and each "%" twice: systemd reads a single one as the start of a
+# variable or a specifier.
+#Environment=TRUSTED_HOSTS=^localhost$$
+
+# Addresses of the reverse proxies in front of the container, separated by
+# commas. Kimai takes the address of the client and the protocol from the
+# X-Forwarded-* headers of requests that come from these addresses.
+#Environment=TRUSTED_PROXIES=127.0.0.1

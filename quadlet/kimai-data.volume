@@ -1,0 +1,5 @@
+[Unit]
+Description=Volume for the files that Kimai stores, such as invoices
+
+[Volume]
+VolumeName=kimai-data

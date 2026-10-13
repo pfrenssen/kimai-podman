@@ -1,0 +1,5 @@
+[Unit]
+Description=Volume for the plugins of Kimai
+
+[Volume]
+VolumeName=kimai-plugins

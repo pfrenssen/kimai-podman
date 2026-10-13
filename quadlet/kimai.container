@@ -1,0 +1,44 @@
+[Unit]
+Description=Kimai
+Requires=kimai-db.container
+After=kimai-db.container
+
+[Container]
+ContainerName=kimai
+Image=docker.io/kimai/kimai2:2
+# with-database-url sets DATABASE_URL and then runs the start script of the
+# image. A command of "podman exec" does not receive that variable, and has to
+# be started through the same script. "podman quadlet install" copies the
+# script without its execute permission, so a shell reads it.
+Secret=kimai-db-password,target=db_password
+Volume=./container/with-database-url:/usr/local/bin/with-database-url:ro
+Exec=sh /usr/local/bin/with-database-url /entrypoint.sh
+Environment=DEFAULT_URI=http://localhost:8001/
+# Kimai answers a request for another host name with status 400. systemd
+# reads "$$" as a single "$".
+Environment=TRUSTED_HOSTS=^localhost$$
+# Loopback only by default: the container serves HTTP without TLS.
+PublishPort=127.0.0.1:8001:8001
+Network=kimai.network
+Volume=kimai-data.volume:/opt/kimai/var/data
+Volume=kimai-plugins.volume:/opt/kimai/var/plugins
+# The request carries the host name of DEFAULT_URI, which TRUSTED_HOSTS has to
+# accept.
+HealthCmd=curl --fail --silent --show-error --output /dev/null --max-time 5 --header "Host: $$(echo "$$DEFAULT_URI" | cut -d/ -f3)" http://127.0.0.1:8001/
+HealthInterval=30s
+HealthTimeout=10s
+HealthRetries=3
+# The start script updates the database schema before the web server starts.
+# Failed checks are not counted during this time.
+HealthStartPeriod=300s
+# systemd counts the unit as started when the health check passes.
+Notify=healthy
+
+[Service]
+Restart=on-failure
+# The first start downloads the image, which has to fit in this time together
+# with the update of the database schema.
+TimeoutStartSec=900
+
+[Install]
+WantedBy=default.target
